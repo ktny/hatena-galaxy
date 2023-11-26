@@ -20,3 +20,10 @@ export interface IBookmark {
     comment: string;
     star: number;
 }
+
+export interface IBookmarker {
+    username: string;
+    bookmarks: IBookmark[];
+    totalStars: number;
+    totalBookmarks: number;
+}

@@ -4,8 +4,8 @@ import { BookmarkStarGatherer } from "../bookmarkStarGatherer";
 export const GET: RequestHandler = async ({ url }) => {
     const username = url.searchParams.get("username") ?? "";
     const gatherer = new BookmarkStarGatherer(username);
-    const bookmarks = await gatherer.main();
-    return json({ bookmarks });
+    const bookmarkerData = await gatherer.main();
+    return json({ ...bookmarkerData });
 };
 
 // import type { PageServerLoad } from "./$types";

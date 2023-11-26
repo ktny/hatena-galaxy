@@ -1,8 +1,4 @@
-import type { IBookmark, Bookmark, BookmarksPageResponse } from "./model";
-
-// const sleep = (ms: number) => {
-//     return new Promise((resolve) => setTimeout(resolve, ms));
-// };
+import type { IBookmark, Bookmark, BookmarksPageResponse, IBookmarker } from "./model";
 
 const entriesEndpoint = `https://s.hatena.ne.jp/entries.json`;
 
@@ -24,12 +20,16 @@ export class BookmarkStarGatherer {
         return url.toString();
     }
 
-    private async gatherBookmarks(page: number = 1) {
-        console.log("gatherBookmarks");
-        const getBookmarksEndpoint = `https://b.hatena.ne.jp/api/users/${this.username}/bookmarks?page=${page}`;
-        console.log(getBookmarksEndpoint);
+    private async fetchTotalBookmarks(): Promise<number> {
+        const url = `https://b.hatena.ne.jp/api/internal/cambridge/user/${this.username}`;
+        const response = await fetch(url);
+        const data = await response.json();
+        return data.user.total_bookmarks;
+    }
 
-        const response = await fetch(getBookmarksEndpoint);
+    private async gatherBookmarks(page: number = 1) {
+        const url = `https://b.hatena.ne.jp/api/users/${this.username}/bookmarks?page=${page}`;
+        const response = await fetch(url);
         const data: BookmarksPageResponse = await response.json();
         return data;
     }
@@ -60,10 +60,19 @@ export class BookmarkStarGatherer {
 
     async main() {
         console.log("start");
-        const result: IBookmark[] = [];
+        // const result: IBookmark[] = [];
+        // const result = {bookmarks}
         let page = 1;
-        let totalStars = 0;
         let hasNextPage = true;
+
+        // ブックマーカーの基礎情報を取得
+        const totalBookmarks = await this.fetchTotalBookmarks();
+        const bookmarkerData: IBookmarker = {
+            username: this.username,
+            bookmarks: [],
+            totalBookmarks,
+            totalStars: 0
+        };
 
         while (hasNextPage) {
             if (page > 10) {
@@ -102,11 +111,11 @@ export class BookmarkStarGatherer {
 
                 const eid = entry.uri.match(/\d+$/);
                 bookmarkResults[eid] = { ...bookmarkResults[eid], star: starCount };
-                totalStars += starCount;
+                bookmarkerData.totalStars += starCount;
             }
 
             Object.values(bookmarkResults).forEach((bookmarkResult) => {
-                result.push(bookmarkResult);
+                bookmarkerData.bookmarks.push(bookmarkResult);
             });
 
             console.log(page);
@@ -118,12 +127,7 @@ export class BookmarkStarGatherer {
             page++;
         }
 
-        result.sort((a, b) => b.star - a.star);
-        // console.table(result.slice(0, 100));
-        // console.log(result);
-        console.log(result.length);
-        console.log(totalStars);
-
-        return result;
+        bookmarkerData.bookmarks.sort((a, b) => b.star - a.star);
+        return bookmarkerData;
     }
 }
