@@ -52,6 +52,8 @@
         if (browser) {
             const storedData = localStorage.getItem(username) || "";
 
+            console.log(new Blob([storedData]).size);
+
             // localstorageにデータがある場合、再取得ボタンをクリックしない限り再取得しない
             if (storedData) {
                 const bookmarkerData = JSON.parse(storedData);

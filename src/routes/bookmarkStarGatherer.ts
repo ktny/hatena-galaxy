@@ -1,6 +1,6 @@
 import type { IBookmark, Bookmark, BookmarksPageResponse, IBookmarker } from "./model";
 
-const entriesEndpoint = `https://s.hatena.ne.jp/entries.json`;
+const entriesEndpoint = `https://s.hatena.ne.jp/entry.json`;
 
 export class BookmarkStarGatherer {
     username: string;
