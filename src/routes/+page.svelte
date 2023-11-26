@@ -1,9 +1,10 @@
 <script>
-    import { username } from "./stores";
     import { goto } from "$app/navigation";
 
+    let username = "";
+
     async function handleSubmit() {
-        goto(`/${$username}/`);
+        goto(`/${username}/`);
     }
 </script>
 
@@ -15,14 +16,9 @@
 <section>
     <h1>Hatena Galaxy</h1>
 
-    <form on:submit|preventDefault={handleSubmit}>
-        <label
-            >username:
-            <input bind:value={$username} />
-        </label>
-
-        <button type="submit">Submit</button>
-    </form>
+    <h2>このユーザーのブックマークスターを調べる</h2>
+    <input bind:value={username} />
+    <button on:click={handleSubmit}>調べる</button>
 </section>
 
 <style>

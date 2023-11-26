@@ -1,6 +1,6 @@
 <script lang="ts">
     import { browser } from "$app/environment";
-    import { onMount } from "svelte";
+    import { onMount, afterUpdate } from "svelte";
     import { page } from "$app/stores";
     import { bookmarkData } from "../stores";
     import type { IBookmarker } from "../model";
@@ -11,6 +11,7 @@
     const initalBookmarkerData = { username, bookmarks: [], totalBookmarks: 0, totalStars: 0 };
 
     let bookmarker: IBookmarker = deepCopy(initalBookmarkerData);
+    let displayBookmarksCount = 100;
     let progress = 0;
     let loading = false;
     let intervalId: NodeJS.Timeout;
@@ -62,6 +63,16 @@
             }
         }
     });
+
+    afterUpdate(() => {
+        window.addEventListener("scroll", handleScroll);
+    });
+
+    function handleScroll() {
+        if (window.innerHeight + window.scrollY >= document.body.offsetHeight) {
+            displayBookmarksCount += 100;
+        }
+    }
 </script>
 
 <svelte:head>
@@ -86,13 +97,15 @@
     {/if}
 
     {#each bookmarker?.bookmarks as bookmark, i}
-        <div>
+        {#if i < displayBookmarksCount}
             <div>
-                <a href={bookmark.url} target="_blank" rel="noopener noreferrer">{bookmark.title}</a>
-                <a href={bookmark.url} target="_blank" rel="noopener noreferrer"><small>{bookmark.bookmarkCount} user</small></a>
+                <div>
+                    <a href={bookmark.url} target="_blank" rel="noopener noreferrer">{bookmark.title}</a>
+                    <a href={bookmark.url} target="_blank" rel="noopener noreferrer"><small>{bookmark.bookmarkCount} user</small></a>
+                </div>
+                <div>{bookmark.comment}</div>
+                <div>🌟{bookmark.star}</div>
             </div>
-            <div>{bookmark.comment}</div>
-            <div>🌟{bookmark.star}</div>
-        </div>
+        {/if}
     {/each}
 </section>
