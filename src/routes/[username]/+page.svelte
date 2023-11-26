@@ -1,11 +1,12 @@
-<script>
+<script lang="ts">
     import { browser } from "$app/environment";
     import { onMount } from "svelte";
     import { page } from "$app/stores";
     import { bookmarkData } from "../stores";
+    import type { IBookmark } from "../model";
 
     const username = $page.params.username;
-    let bookmarks = [];
+    let bookmarks: IBookmark[] = [];
 
     onMount(async () => {
         if (browser) {
