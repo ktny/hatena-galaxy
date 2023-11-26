@@ -6,6 +6,9 @@
     import type { IBookmark } from "../model";
 
     const username = $page.params.username;
+    const iconURL = `https://cdn.profile-image.st-hatena.com/users/${username}/profile.png`;
+    const bookmarkListURL = `https://b.hatena.ne.jp/${username}/bookmark`;
+
     let bookmarks: IBookmark[] = [];
 
     async function fetchBookmarkerData() {
@@ -43,6 +46,10 @@
 
 <section>
     <h1>{username}</h1>
+
+    <a href={bookmarkListURL} target="_blank" rel="noopener noreferrer">
+        <img src={iconURL} alt={username} />
+    </a>
 
     <button on:click={reloadBookmarkerPage}>再取得</button>
 
