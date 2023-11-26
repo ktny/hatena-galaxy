@@ -14,7 +14,6 @@ export const OPTIONS: RequestHandler = () => {
     if (!gatherer) {
         return json({ progress: 1 });
     }
-    const progress = gatherer.getProgress();
-    console.log(progress);
-    return json({ progress });
+    const data = gatherer.getInProgressBookmarkerData();
+    return json({ ...data });
 };

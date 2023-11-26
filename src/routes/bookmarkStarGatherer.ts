@@ -4,6 +4,9 @@ const entriesEndpoint = `https://s.hatena.ne.jp/entries.json`;
 
 export class BookmarkStarGatherer {
     username: string;
+    currentPage: number = 1;
+    progress: number = 0;
+
     bookmarkerData: IBookmarker = {
         username: "",
         bookmarks: [],
@@ -64,14 +67,19 @@ export class BookmarkStarGatherer {
         return entriesData.entries;
     }
 
-    getProgress(): number {
-        const current = this.bookmarkerData.bookmarks.length;
-        return current / this.bookmarkerData.totalBookmarks;
+    getInProgressBookmarkerData() {
+        return { bookmarkerData: this.bookmarkerData, progress: this.progress };
+    }
+
+    private calcProgress(): number {
+        const currentBookmarks = this.currentPage * 20;
+        const progress = currentBookmarks / this.bookmarkerData.totalBookmarks;
+        console.log(`${this.currentPage} page ${progress} progress`);
+        return progress > 1 ? 1 : progress;
     }
 
     async main() {
         console.log("start");
-        let page = 1;
         let hasNextPage = true;
 
         // ブックマーカーの基礎情報を取得
@@ -84,15 +92,13 @@ export class BookmarkStarGatherer {
         };
 
         while (hasNextPage) {
-            if (page > 10) {
-                break;
-            }
+            // if (this.currentPage > 10) {
+            //     break;
+            // }
 
-            const bookmarksPageResult = await this.gatherBookmarks(page);
+            const bookmarksPageResult = await this.gatherBookmarks(this.currentPage);
             const bookmarks = bookmarksPageResult.item.bookmarks;
             hasNextPage = !!bookmarksPageResult.pager.next;
-
-            console.log("bookmarkResults");
 
             const bookmarkResults: { [eid: number]: IBookmark } = {};
             for (const bookmark of bookmarks) {
@@ -127,12 +133,13 @@ export class BookmarkStarGatherer {
                 this.bookmarkerData.bookmarks.push(bookmarkResult);
             });
 
-            console.log(page);
             if (!hasNextPage) {
+                this.progress = 1;
                 break;
             }
 
-            page++;
+            this.currentPage++;
+            this.progress = this.calcProgress();
         }
 
         this.bookmarkerData.bookmarks.sort((a, b) => b.star - a.star);
