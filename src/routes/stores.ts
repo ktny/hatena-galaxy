@@ -1,3 +1,10 @@
-import { writable } from "svelte/store";
+import { writable, type Writable } from "svelte/store";
+import type { IBookmark } from "./model";
 
-export const bookmarkData = writable({});
+interface BookmarkData {
+    [key: string]: {
+        bookmarks: IBookmark[];
+    };
+}
+
+export const bookmarkData: Writable<BookmarkData> = writable({});

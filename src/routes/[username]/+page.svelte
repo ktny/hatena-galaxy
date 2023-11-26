@@ -4,26 +4,24 @@
     import { page } from "$app/stores";
     import { bookmarkData } from "../stores";
 
-    // export let data;
-
     const username = $page.params.username;
     let bookmarks = [];
 
     onMount(async () => {
         if (browser) {
             const storedData = localStorage.getItem(username) || "";
-            console.log(storedData);
-            const res = await fetch(`/gather?username=${username}`);
-            // const bookmarks = await res.json();
-            // console.log(bookmarks);
-            $bookmarkData[username] = await res.json();
-            bookmarks = $bookmarkData?.[username].bookmarks ?? [];
-            bookmarkData.set($bookmarkData);
+            // console.log(storedData);
 
-            // console.log($bookmarkData);
-            // console.log($bookmarkData[username]);
-
-            console.log(bookmarks);
+            // localstorageにデータがある場合、再取得ボタンをクリックしない限り再取得しない
+            if (storedData) {
+                bookmarks = JSON.parse(storedData);
+            } else {
+                const res = await fetch(`/gather?username=${username}`);
+                $bookmarkData[username] = await res.json();
+                bookmarks = $bookmarkData?.[username].bookmarks ?? [];
+                bookmarkData.set($bookmarkData);
+                localStorage.setItem(username, JSON.stringify(bookmarks));
+            }
         }
     });
 </script>
