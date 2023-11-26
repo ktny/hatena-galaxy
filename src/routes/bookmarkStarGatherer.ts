@@ -126,7 +126,7 @@ export class BookmarkStarGatherer {
                 break;
             }
 
-            if (page > 5) {
+            if (page > 1) {
                 break;
             }
             page++;

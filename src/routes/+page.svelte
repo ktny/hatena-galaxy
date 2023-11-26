@@ -1,8 +1,10 @@
 <script>
     import { username } from "./stores";
-    import { enhance } from "$app/forms";
+    import { goto } from "$app/navigation";
 
-    export let data;
+    async function handleSubmit() {
+        goto(`/${$username}/`);
+    }
 </script>
 
 <svelte:head>
@@ -13,16 +15,14 @@
 <section>
     <h1>Hatena Galaxy</h1>
 
-    <form method="POST" action="?/gatherBookmarks" use:enhance>
+    <form on:submit|preventDefault={handleSubmit}>
         <label
             >username:
-            <input name="username" autocomplete="off" />
+            <input bind:value={$username} />
         </label>
-    </form>
 
-    {#each data.bookmarks as bookmark, i}
-        <div>{i}: {bookmark?.star}: {bookmark?.comment}</div>
-    {/each}
+        <button type="submit">Submit</button>
+    </form>
 </section>
 
 <style>
