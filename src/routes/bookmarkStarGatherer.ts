@@ -6,7 +6,6 @@ export class BookmarkStarGatherer {
     username: string;
     currentPage: number = 1;
     progress: number = 0;
-
     bookmarkerData: IBookmarker = {
         username: "",
         bookmarks: [],
@@ -43,27 +42,32 @@ export class BookmarkStarGatherer {
         return data;
     }
 
-    private async getStarCounts(bookmarks: Bookmark[]) {
-        const uris = [];
-        for (const bookmark of bookmarks) {
-            const eid = bookmark.location_id;
-            const originalDateString = bookmark.created;
+    /**
+     * YYYY-MM-DD形式に変換する
+     * @param dateString
+     * @returns
+     */
+    private formatDateString(dateString: string): string {
+        // 文字列をDateオブジェクトに変換
+        const originalDate = new Date(dateString);
 
-            // 文字列をDateオブジェクトに変換
-            const originalDate = new Date(originalDateString);
+        // 年月日を取得
+        const year = originalDate.getFullYear();
+        const month = (originalDate.getMonth() + 1).toString().padStart(2, "0"); // 月は0から始まるため+1
+        const day = originalDate.getDate().toString().padStart(2, "0");
+        const date = `${year}-${month}-${day}`;
+        return date;
+    }
 
-            // 年月日を取得
-            const year = originalDate.getFullYear();
-            const month = (originalDate.getMonth() + 1).toString().padStart(2, "0"); // 月は0から始まるため+1
-            const day = originalDate.getDate().toString().padStart(2, "0");
-            const date = `${year}${month}${day}`;
-            const commentURL = `https://b.hatena.ne.jp/${this.username}/${date}#bookmark-${eid}`;
-            uris.push(commentURL);
-        }
+    private buildCommentURL(bookmark: Bookmark, date: string) {
+        return `https://b.hatena.ne.jp/${this.username}/${date}#bookmark-${bookmark.location_id}`;
+    }
+
+    private async getStarCounts(bookmarkResults: { [eid: number]: IBookmark }) {
+        const uris = Object.values(bookmarkResults).map((bookmark) => bookmark.commentURL);
         const entriesURL = this.buildURL(entriesEndpoint, uris);
         const entriesResponse = await fetch(entriesURL);
         const entriesData = await entriesResponse.json();
-
         return entriesData.entries;
     }
 
@@ -80,6 +84,15 @@ export class BookmarkStarGatherer {
 
     private sortBookmarksByStarCount() {
         this.bookmarkerData.bookmarks.sort((a, b) => b.star - a.star);
+    }
+
+    private excludeProtocolFromURL(url: string) {
+        return url.replace("http://", "").replace("https://", "");
+    }
+
+    private buildBookmarksURL(bookmark: Bookmark) {
+        const urlWithoutHTTP = this.excludeProtocolFromURL(bookmark.url);
+        return `https://b.hatena.ne.jp/entry/s/${urlWithoutHTTP}`;
     }
 
     async main() {
@@ -102,17 +115,25 @@ export class BookmarkStarGatherer {
 
             const bookmarkResults: { [eid: number]: IBookmark } = {};
             for (const bookmark of bookmarks) {
+                const dateString = this.formatDateString(bookmark.created);
+                const commentURL = this.buildCommentURL(bookmark, dateString.replaceAll("-", ""));
+                const bookmarksURL = this.buildBookmarksURL(bookmark);
+
                 bookmarkResults[bookmark.location_id] = {
+                    eid: bookmark.location_id,
                     title: bookmark.entry.title,
                     bookmarkCount: bookmark.entry.total_bookmarks,
                     category: bookmark.entry.category.path,
-                    url: bookmark.url,
+                    entryURL: bookmark.url,
+                    bookmarksURL,
+                    commentURL,
+                    bookmarkDate: dateString,
                     comment: bookmark.comment,
                     star: 0
                 };
             }
 
-            const starData = await this.getStarCounts(bookmarks);
+            const starData = await this.getStarCounts(bookmarkResults);
 
             for (const entry of starData) {
                 let starCount = 0;

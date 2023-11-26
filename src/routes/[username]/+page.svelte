@@ -86,7 +86,7 @@
     <h2>total ★: {bookmarker.totalStars}</h2>
     <h2>total B!: {bookmarker.totalBookmarks}</h2>
 
-    <a href={bookmarkListURL} target="_blank" rel="noopener noreferrer">
+    <a href={bookmarkListURL} target="_blank">
         <img src={iconURL} alt={username} />
     </a>
 
@@ -100,10 +100,13 @@
         {#if i < displayBookmarksCount}
             <div>
                 <div>
-                    <a href={bookmark.url} target="_blank" rel="noopener noreferrer">{bookmark.title}</a>
-                    <a href={bookmark.url} target="_blank" rel="noopener noreferrer"><small>{bookmark.bookmarkCount} user</small></a>
+                    <a href={bookmark.entryURL} target="_blank">{bookmark.title}</a>
+                    <a href={bookmark.bookmarksURL} target="_blank"><small>{bookmark.bookmarkCount} user</small></a>
                 </div>
-                <div>{bookmark.comment}</div>
+                <div>
+                    <a href="https://b.hatena.ne.jp/entry/{bookmark.eid}/comment/{username}" target="_blank">{bookmark.comment}</a>
+                    <small>{bookmark.bookmarkDate}</small>
+                </div>
                 <div>🌟{bookmark.star}</div>
             </div>
         {/if}

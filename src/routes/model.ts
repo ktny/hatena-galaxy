@@ -9,14 +9,19 @@ export interface Bookmark {
     entry: any;
     location_id: number;
     url: string;
+    canonical_url: string;
     comment: string;
 }
 
 export interface IBookmark {
+    eid: number;
     title: string;
     bookmarkCount: number;
     category: string;
-    url: string;
+    entryURL: string;
+    bookmarksURL: string;
+    commentURL: string;
+    bookmarkDate: string;
     comment: string;
     star: number;
 }
