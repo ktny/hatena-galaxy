@@ -8,6 +8,8 @@
     const username = $page.params.username;
     const iconURL = `https://cdn.profile-image.st-hatena.com/users/${username}/profile.png`;
     const bookmarkListURL = `https://b.hatena.ne.jp/${username}/bookmark`;
+    let progress = 0;
+    let intervalId: NodeJS.Timeout;
 
     const initalBookmarkerData = { username, bookmarks: [], totalBookmarks: 0, totalStars: 0 };
 
@@ -28,7 +30,19 @@
 
     async function reloadBookmarkerPage() {
         bookmarker = deepCopy(initalBookmarkerData);
+        intervalId = setInterval(getProgress, 1000);
         fetchBookmarkerData();
+    }
+
+    async function getProgress() {
+        const res = await fetch(`/gather?username=${username}`, { method: "OPTIONS" });
+        const data = await res.json();
+        progress = data.progress;
+
+        // TODO: progress >= 1にする
+        if (progress >= 0.06) {
+            clearInterval(intervalId);
+        }
     }
 
     onMount(async () => {
@@ -41,6 +55,7 @@
                 bookmarker = bookmarkersData;
             } else {
                 fetchBookmarkerData();
+                intervalId = setInterval(getProgress, 1000);
             }
         }
     });
@@ -62,6 +77,8 @@
     </a>
 
     <button on:click={reloadBookmarkerPage}>再取得</button>
+
+    <div>{progress} / 100</div>
 
     {#each bookmarker?.bookmarks as bookmark, i}
         <div>{i + 1}: {bookmark.star}: {bookmark.comment}</div>

@@ -1,23 +1,20 @@
 import { json, type RequestHandler } from "@sveltejs/kit";
 import { BookmarkStarGatherer } from "../bookmarkStarGatherer";
 
+let gatherer: BookmarkStarGatherer;
+
 export const GET: RequestHandler = async ({ url }) => {
     const username = url.searchParams.get("username") ?? "";
-    const gatherer = new BookmarkStarGatherer(username);
+    gatherer = new BookmarkStarGatherer(username);
     const bookmarkerData = await gatherer.main();
     return json({ ...bookmarkerData });
 };
 
-// import type { PageServerLoad } from "./$types";
-// import { BookmarkStarGatherer } from "../bookmarkStarGatherer";
-// import type { IBookmark } from "../bookmarkStarGatherer";
-
-// let bookmarks: IBookmark[] = [];
-
-// export const load = (async ({ params }) => {
-//     const { username } = params;
-//     // const gatherer = new BookmarkStarGatherer(username as string);
-//     bookmarks = await gatherer.main();
-
-//     return { bookmarks };
-// }) satisfies PageServerLoad;
+export const OPTIONS: RequestHandler = () => {
+    if (!gatherer) {
+        return json({ progress: 1 });
+    }
+    const progress = gatherer.getProgress();
+    console.log(progress);
+    return json({ progress });
+};

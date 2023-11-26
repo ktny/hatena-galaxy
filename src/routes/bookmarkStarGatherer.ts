@@ -4,6 +4,12 @@ const entriesEndpoint = `https://s.hatena.ne.jp/entries.json`;
 
 export class BookmarkStarGatherer {
     username: string;
+    bookmarkerData: IBookmarker = {
+        username: "",
+        bookmarks: [],
+        totalBookmarks: 0,
+        totalStars: 0
+    };
 
     constructor(username: string) {
         this.username = username;
@@ -58,16 +64,19 @@ export class BookmarkStarGatherer {
         return entriesData.entries;
     }
 
+    getProgress(): number {
+        const current = this.bookmarkerData.bookmarks.length;
+        return current / this.bookmarkerData.totalBookmarks;
+    }
+
     async main() {
         console.log("start");
-        // const result: IBookmark[] = [];
-        // const result = {bookmarks}
         let page = 1;
         let hasNextPage = true;
 
         // ブックマーカーの基礎情報を取得
         const totalBookmarks = await this.fetchTotalBookmarks();
-        const bookmarkerData: IBookmarker = {
+        this.bookmarkerData = {
             username: this.username,
             bookmarks: [],
             totalBookmarks,
@@ -111,15 +120,14 @@ export class BookmarkStarGatherer {
 
                 const eid = entry.uri.match(/\d+$/);
                 bookmarkResults[eid] = { ...bookmarkResults[eid], star: starCount };
-                bookmarkerData.totalStars += starCount;
+                this.bookmarkerData.totalStars += starCount;
             }
 
             Object.values(bookmarkResults).forEach((bookmarkResult) => {
-                bookmarkerData.bookmarks.push(bookmarkResult);
+                this.bookmarkerData.bookmarks.push(bookmarkResult);
             });
 
             console.log(page);
-            // await sleep(200);
             if (!hasNextPage) {
                 break;
             }
@@ -127,7 +135,7 @@ export class BookmarkStarGatherer {
             page++;
         }
 
-        bookmarkerData.bookmarks.sort((a, b) => b.star - a.star);
-        return bookmarkerData;
+        this.bookmarkerData.bookmarks.sort((a, b) => b.star - a.star);
+        return this.bookmarkerData;
     }
 }
