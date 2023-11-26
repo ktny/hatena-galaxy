@@ -46,7 +46,10 @@ export class BookmarkStarGatherer {
     }
 
     private async gatherBookmarks(page: number = 1) {
+        console.log("gatherBookmarks");
         const getBookmarksEndpoint = `https://b.hatena.ne.jp/api/users/${this.username}/bookmarks?page=${page}`;
+        console.log(getBookmarksEndpoint);
+
         const response = await fetch(getBookmarksEndpoint);
         const data: BookmarksPageResponse = await response.json();
         return data;
@@ -77,15 +80,22 @@ export class BookmarkStarGatherer {
     }
 
     async main() {
+        console.log("start");
         const result: IBookmark[] = [];
         let page = 1;
         let totalStars = 0;
         let hasNextPage = true;
 
         while (hasNextPage) {
+            if (page > 1) {
+                break;
+            }
+
             const bookmarksPageResult = await this.gatherBookmarks(page);
             const bookmarks = bookmarksPageResult.item.bookmarks;
             hasNextPage = !!bookmarksPageResult.pager.next;
+
+            console.log("bookmarkResults");
 
             const bookmarkResults: { [eid: number]: IBookmark } = {};
             for (const bookmark of bookmarks) {
@@ -126,14 +136,11 @@ export class BookmarkStarGatherer {
                 break;
             }
 
-            if (page > 1) {
-                break;
-            }
             page++;
         }
 
         result.sort((a, b) => b.star - a.star);
-        console.table(result.slice(0, 100));
+        // console.table(result.slice(0, 100));
         // console.log(result);
         console.log(result.length);
         console.log(totalStars);
