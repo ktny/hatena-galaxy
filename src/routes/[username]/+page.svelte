@@ -8,6 +8,19 @@
     const username = $page.params.username;
     let bookmarks: IBookmark[] = [];
 
+    async function fetchBookmarkerData() {
+        const res = await fetch(`/gather?username=${username}`);
+        $bookmarkData[username] = await res.json();
+        bookmarks = $bookmarkData?.[username].bookmarks ?? [];
+        bookmarkData.set($bookmarkData);
+        localStorage.setItem(username, JSON.stringify(bookmarks));
+    }
+
+    async function reloadBookmarkerPage() {
+        bookmarks = [];
+        fetchBookmarkerData();
+    }
+
     onMount(async () => {
         if (browser) {
             const storedData = localStorage.getItem(username) || "";
@@ -17,11 +30,7 @@
             if (storedData) {
                 bookmarks = JSON.parse(storedData);
             } else {
-                const res = await fetch(`/gather?username=${username}`);
-                $bookmarkData[username] = await res.json();
-                bookmarks = $bookmarkData?.[username].bookmarks ?? [];
-                bookmarkData.set($bookmarkData);
-                localStorage.setItem(username, JSON.stringify(bookmarks));
+                fetchBookmarkerData();
             }
         }
     });
@@ -35,7 +44,9 @@
 <section>
     <h1>{username}</h1>
 
+    <button on:click={reloadBookmarkerPage}>再取得</button>
+
     {#each bookmarks as bookmark, i}
-        <div>{i}: {bookmark.star}: {bookmark.comment}</div>
+        <div>{i + 1}: {bookmark.star}: {bookmark.comment}</div>
     {/each}
 </section>

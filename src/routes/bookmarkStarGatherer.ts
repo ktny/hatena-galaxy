@@ -66,7 +66,7 @@ export class BookmarkStarGatherer {
         let hasNextPage = true;
 
         while (hasNextPage) {
-            if (page > 1) {
+            if (page > 10) {
                 break;
             }
 
