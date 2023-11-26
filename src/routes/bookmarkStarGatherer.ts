@@ -78,6 +78,10 @@ export class BookmarkStarGatherer {
         return progress > 1 ? 1 : progress;
     }
 
+    private sortBookmarksByStarCount() {
+        this.bookmarkerData.bookmarks.sort((a, b) => b.star - a.star);
+    }
+
     async main() {
         console.log("start");
         let hasNextPage = true;
@@ -92,10 +96,6 @@ export class BookmarkStarGatherer {
         };
 
         while (hasNextPage) {
-            // if (this.currentPage > 10) {
-            //     break;
-            // }
-
             const bookmarksPageResult = await this.gatherBookmarks(this.currentPage);
             const bookmarks = bookmarksPageResult.item.bookmarks;
             hasNextPage = !!bookmarksPageResult.pager.next;
@@ -138,11 +138,16 @@ export class BookmarkStarGatherer {
                 break;
             }
 
+            // 20ページ(400ブクマごとにブックマークをソートする)
+            if (this.currentPage % 20 === 0) {
+                this.sortBookmarksByStarCount();
+            }
+
             this.currentPage++;
             this.progress = this.calcProgress();
         }
 
-        this.bookmarkerData.bookmarks.sort((a, b) => b.star - a.star);
+        this.sortBookmarksByStarCount();
         return this.bookmarkerData;
     }
 }
