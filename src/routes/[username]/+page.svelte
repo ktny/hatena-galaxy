@@ -53,8 +53,9 @@
 
             // localstorageにデータがある場合、再取得ボタンをクリックしない限り再取得しない
             if (storedData) {
-                const bookmarkersData = JSON.parse(storedData);
-                bookmarker = bookmarkersData;
+                const bookmarkerData = JSON.parse(storedData);
+                bookmarker = bookmarkerData;
+                console.log(bookmarkerData);
             } else {
                 fetchBookmarkerData();
                 intervalId = setInterval(getInProgressBookmarkerData, 1000);
@@ -85,6 +86,13 @@
     {/if}
 
     {#each bookmarker?.bookmarks as bookmark, i}
-        <div>{i + 1}: {bookmark.star}: {bookmark.comment}</div>
+        <div>
+            <div>
+                <a href={bookmark.url} target="_blank" rel="noopener noreferrer">{bookmark.title}</a>
+                <a href={bookmark.url} target="_blank" rel="noopener noreferrer"><small>{bookmark.bookmarkCount} user</small></a>
+            </div>
+            <div>{bookmark.comment}</div>
+            <div>🌟{bookmark.star}</div>
+        </div>
     {/each}
 </section>
