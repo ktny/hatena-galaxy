@@ -109,7 +109,13 @@
                     <a href="https://b.hatena.ne.jp/entry/{bookmark.eid}/comment/{username}" target="_blank">{bookmark.comment}</a>
                     <small>{bookmark.bookmarkDate}</small>
                 </div>
-                <div>🌟{bookmark.star}</div>
+                <div>
+                    {#if bookmark.star.purple > 0}<span>紫{bookmark.star.purple}</span>{/if}
+                    {#if bookmark.star.blue > 0}<span>青{bookmark.star.blue}</span>{/if}
+                    {#if bookmark.star.red > 0}<span>赤{bookmark.star.red}</span>{/if}
+                    {#if bookmark.star.green > 0}<span>緑{bookmark.star.green}</span>{/if}
+                    🌟{bookmark.star.yellow}
+                </div>
             </div>
         {/if}
     {/each}

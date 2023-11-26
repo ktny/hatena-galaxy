@@ -1,4 +1,4 @@
-import type { IBookmark, Bookmark, BookmarksPageResponse, IBookmarker } from "./model";
+import { type IBookmark, type Bookmark, type BookmarksPageResponse, type IBookmarker, initalStarCount, type IStarCount } from "./model";
 
 const entriesEndpoint = `https://s.hatena.ne.jp/entry.json`;
 
@@ -75,6 +75,10 @@ export class BookmarkStarGatherer {
         return { bookmarkerData: this.bookmarkerData, progress: this.progress };
     }
 
+    private calcTotalStarCount(starCount: IStarCount): number {
+        return Object.values(starCount).reduce((acc, cur) => acc + cur);
+    }
+
     private calcProgress(): number {
         const currentBookmarks = this.currentPage * 20;
         const progress = currentBookmarks / this.bookmarkerData.totalBookmarks;
@@ -83,7 +87,7 @@ export class BookmarkStarGatherer {
     }
 
     private sortBookmarksByStarCount() {
-        this.bookmarkerData.bookmarks.sort((a, b) => b.star - a.star);
+        this.bookmarkerData.bookmarks.sort((a, b) => b.star.yellow - a.star.yellow);
     }
 
     private excludeProtocolFromURL(url: string) {
@@ -129,25 +133,43 @@ export class BookmarkStarGatherer {
                     commentURL,
                     bookmarkDate: dateString,
                     comment: bookmark.comment,
-                    star: 0
+                    star: initalStarCount
                 };
             }
 
             const starData = await this.getStarCounts(bookmarkResults);
 
             for (const entry of starData) {
-                let starCount = 0;
+                const starCount: IStarCount = {
+                    yellow: 0,
+                    green: 0,
+                    red: 0,
+                    blue: 0,
+                    purple: 0
+                };
                 for (const star of entry.stars) {
                     if (typeof star === "number") {
-                        starCount += star;
+                        starCount.yellow += star;
                     } else {
-                        starCount++;
+                        starCount.yellow++;
+                    }
+                }
+
+                if (entry.colored_stars) {
+                    for (const colorStar of entry.colored_stars) {
+                        for (const star of colorStar.stars) {
+                            if (typeof star === "number") {
+                                starCount[colorStar.color] += star;
+                            } else {
+                                starCount[colorStar.color]++;
+                            }
+                        }
                     }
                 }
 
                 const eid = entry.uri.match(/\d+$/);
                 bookmarkResults[eid] = { ...bookmarkResults[eid], star: starCount };
-                this.bookmarkerData.totalStars += starCount;
+                this.bookmarkerData.totalStars += this.calcTotalStarCount(starCount);
             }
 
             Object.values(bookmarkResults).forEach((bookmarkResult) => {
