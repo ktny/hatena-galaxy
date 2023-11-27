@@ -13,7 +13,7 @@
     let bookmarker: IBookmarker = deepCopy(initalBookmarkerData);
     let displayBookmarksCount = 100;
     let progress = 0;
-    let loading = false;
+    let isLoading = false;
     let intervalId: NodeJS.Timeout;
 
     function deepCopy(data: any) {
@@ -21,30 +21,35 @@
     }
 
     async function fetchBookmarkerData() {
-        loading = true;
-        const res = await fetch(`/gather?username=${username}`);
+        isLoading = true;
+        const res = await fetch(`/api/gather?username=${username}`);
         const bookmarkersData = await res.json();
         $bookmarkData[username] = bookmarkersData;
         bookmarker = bookmarkersData;
         bookmarkData.set($bookmarkData);
         localStorage.setItem(username, JSON.stringify(bookmarkersData));
-        loading = false;
+        isLoading = false;
     }
 
     async function reloadBookmarkerPage() {
-        bookmarker = deepCopy(initalBookmarkerData);
-        intervalId = setInterval(getInProgressBookmarkerData, 1000);
+        pollingInporgressBookmarkerData();
         fetchBookmarkerData();
     }
 
+    async function pollingInporgressBookmarkerData() {
+        bookmarker = deepCopy(initalBookmarkerData);
+        intervalId = setInterval(getInProgressBookmarkerData, 1000);
+    }
+
     async function getInProgressBookmarkerData() {
-        const res = await fetch(`/gather?username=${username}`, { method: "OPTIONS" });
+        const res = await fetch(`/api/gather?username=${username}`, { method: "OPTIONS" });
         const data = await res.json();
         bookmarker = data.bookmarkerData;
         progress = data.progress;
 
-        if (!loading || data.progress >= 1) {
+        if (!isLoading || data.progress >= 1) {
             clearInterval(intervalId);
+            isLoading = false;
         }
     }
 
@@ -52,10 +57,17 @@
         if (browser) {
             const storedData = localStorage.getItem(username) || "";
 
-            console.log(new Blob([storedData]).size);
+            const res = await fetch(`/api/gatherer/loading?username=${username}`);
+            isLoading = await res.json();
 
-            // localstorageにデータがある場合、再取得ボタンをクリックしない限り再取得しない
-            if (storedData) {
+            console.log(isLoading);
+
+            // 取得中であれば再取得ボタンをクリックしたあとと同様の挙動にする
+            if (isLoading) {
+                pollingInporgressBookmarkerData();
+
+                // localstorageにデータがある場合、再取得ボタンをクリックしない限り再取得しない
+            } else if (storedData) {
                 const bookmarkerData = JSON.parse(storedData);
                 bookmarker = bookmarkerData;
                 console.log(bookmarkerData);
@@ -92,9 +104,9 @@
         <img src={iconURL} alt={username} />
     </a>
 
-    <button on:click={reloadBookmarkerPage}>再取得</button>
+    <button on:click={reloadBookmarkerPage} disabled={isLoading}>再取得</button>
 
-    {#if loading}
+    {#if isLoading}
         <div>{progress} / 1</div>
     {/if}
 

@@ -1,4 +1,11 @@
-import { type IBookmark, type Bookmark, type BookmarksPageResponse, type IBookmarker, initalStarCount, type IStarCount } from "./model";
+import {
+    type IBookmark,
+    type Bookmark,
+    type BookmarksPageResponse,
+    type IBookmarker,
+    initalStarCount,
+    type IStarCount
+} from "../../routes/model";
 
 const entriesEndpoint = `https://s.hatena.ne.jp/entry.json`;
 
@@ -7,10 +14,10 @@ export class BookmarkStarGatherer {
     currentPage: number = 1;
     progress: number = 0;
     bookmarkerData: IBookmarker = {
-        username: "",
+        username: "", // 不要
         bookmarks: [],
-        totalBookmarks: 0,
-        totalStars: 0
+        totalBookmarks: 0, // 最初に1回返せばよい
+        totalStars: 0 // フロントで計算する？無駄か
     };
 
     constructor(username: string) {
