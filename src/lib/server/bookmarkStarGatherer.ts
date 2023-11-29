@@ -9,10 +9,14 @@ import {
 
 const entriesEndpoint = `https://s.hatena.ne.jp/entry.json`;
 
+// ブックマーク一覧の1ページに存在するブックマーク数（はてなブックマークの仕様）
+const BOOKMARKS_PER_PAGE = 20;
+
 export class BookmarkStarGatherer {
     username: string;
-    currentPage: number = 1;
-    progress: number = 0;
+    currentPage = 1;
+    fetchPageChunk = 5;
+    progress = 0;
     bookmarkerData: IBookmarker = {
         username: "", // 不要
         bookmarks: [],
@@ -42,11 +46,47 @@ export class BookmarkStarGatherer {
         return data.user.total_bookmarks;
     }
 
+    /**
+     * ユーザーの各ページのブックマーク情報を取得する。1ページにつき最大20ブックマーク情報取得する
+     *
+     * @param page 取得するページ番号
+     * @returns ブックマーク情報の配列
+     */
     private async gatherBookmarks(page: number = 1) {
         const url = `https://b.hatena.ne.jp/api/users/${this.username}/bookmarks?page=${page}`;
         const response = await fetch(url);
         const data: BookmarksPageResponse = await response.json();
         return data;
+    }
+
+    /**
+     * ユーザーの複数ページのブックマーク情報を取得する
+     *
+     * @param startPage 取得する開始ページ番号
+     * @param pageCount 取得するページ数
+     * @returns ブックマーク情報の配列、次のページがあるか
+     */
+    private async bulkGatherBookmarks(startPage: number, pageCount: number) {
+        const promises = [];
+        for (let page = startPage; page < startPage + pageCount; page++) {
+            promises.push(this.gatherBookmarks(page));
+        }
+        const bookmarksPagesResponse = await Promise.all(promises);
+
+        const bookmarks: Bookmark[] = [];
+        let hasNextPage = false;
+        for (const bookmarksPageResponse of bookmarksPagesResponse) {
+            bookmarks.push(...bookmarksPageResponse.item.bookmarks);
+            hasNextPage = !!bookmarksPageResponse.pager.next;
+            if (!hasNextPage) {
+                break;
+            }
+        }
+
+        return {
+            bookmarks,
+            hasNextPage
+        };
     }
 
     /**
@@ -71,11 +111,23 @@ export class BookmarkStarGatherer {
     }
 
     private async getStarCounts(bookmarkResults: { [eid: number]: IBookmark }) {
-        const uris = Object.values(bookmarkResults).map((bookmark) => bookmark.commentURL);
-        const entriesURL = this.buildURL(entriesEndpoint, uris);
-        const entriesResponse = await fetch(entriesURL);
-        const entriesData = await entriesResponse.json();
-        return entriesData.entries;
+        const commentURLs = Object.values(bookmarkResults).map((bookmark) => bookmark.commentURL);
+
+        const promises = [];
+        for (let i = 0; i < commentURLs.length; i += BOOKMARKS_PER_PAGE) {
+            const sliceUris = commentURLs.slice(i, i + BOOKMARKS_PER_PAGE);
+            const entriesURL = this.buildURL(entriesEndpoint, sliceUris);
+            promises.push(fetch(entriesURL));
+        }
+
+        const entries = [];
+        const responses = await Promise.all(promises);
+        for (const response of responses) {
+            const entriesData = await response.json();
+            entries.push(...entriesData.entries);
+        }
+
+        return entries;
     }
 
     getInProgressBookmarkerData() {
@@ -87,7 +139,7 @@ export class BookmarkStarGatherer {
     }
 
     private calcProgress(): number {
-        const currentBookmarks = this.currentPage * 20;
+        const currentBookmarks = this.currentPage * BOOKMARKS_PER_PAGE;
         const progress = currentBookmarks / this.bookmarkerData.totalBookmarks;
         console.log(`${this.currentPage} page ${progress} progress`);
         return progress > 1 ? 1 : progress;
@@ -119,11 +171,16 @@ export class BookmarkStarGatherer {
             totalStars: 0
         };
 
+        let loopCount = 1;
         while (hasNextPage) {
-            const bookmarksPageResult = await this.gatherBookmarks(this.currentPage);
-            const bookmarks = bookmarksPageResult.item.bookmarks;
-            hasNextPage = !!bookmarksPageResult.pager.next;
+            console.log(this.currentPage);
 
+            // 一度に最大で fetchPageChunk * BOOKMARKS_PER_PAGE のブックマークを取得する
+            const bulkResult = await this.bulkGatherBookmarks(this.currentPage, this.fetchPageChunk);
+            const bookmarks = bulkResult.bookmarks;
+            hasNextPage = bulkResult.hasNextPage;
+
+            // この後の処理のため、配列でなくeidをkeyにしたdictでブックマーク情報を保持する
             const bookmarkResults: { [eid: number]: IBookmark } = {};
             for (const bookmark of bookmarks) {
                 const dateString = this.formatDateString(bookmark.created);
@@ -136,11 +193,11 @@ export class BookmarkStarGatherer {
                     bookmarkCount: bookmark.entry.total_bookmarks,
                     category: bookmark.entry.category.path,
                     entryURL: bookmark.url,
-                    bookmarksURL,
-                    commentURL,
                     bookmarkDate: dateString,
                     comment: bookmark.comment,
-                    star: initalStarCount
+                    star: initalStarCount,
+                    bookmarksURL,
+                    commentURL
                 };
             }
 
@@ -154,6 +211,7 @@ export class BookmarkStarGatherer {
                     blue: 0,
                     purple: 0
                 };
+
                 for (const star of entry.stars) {
                     if (typeof star === "number") {
                         starCount.yellow += star;
@@ -188,12 +246,13 @@ export class BookmarkStarGatherer {
                 break;
             }
 
-            // 20ページ(400ブクマごとにブックマークをソートする)
-            if (this.currentPage % 20 === 0) {
+            // 5ループごとにブックマークをソートする
+            if (loopCount % 5 === 0) {
                 this.sortBookmarksByStarCount();
             }
 
-            this.currentPage++;
+            loopCount += 1;
+            this.currentPage += this.fetchPageChunk;
             this.progress = this.calcProgress();
         }
 
