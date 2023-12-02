@@ -55,7 +55,7 @@
 
     onMount(async () => {
         if (browser) {
-            const storedData = localStorage.getItem(username) || "";
+            // const storedData = localStorage.getItem(username) || "";
 
             const res = await fetch(`/api/gatherer/loading?username=${username}`);
             isLoading = await res.json();
@@ -65,12 +65,6 @@
             // 取得中であれば再取得ボタンをクリックしたあとと同様の挙動にする
             if (isLoading) {
                 pollingInporgressBookmarkerData();
-
-                // localstorageにデータがある場合、再取得ボタンをクリックしない限り再取得しない
-            } else if (storedData) {
-                const bookmarkerData = JSON.parse(storedData);
-                bookmarker = bookmarkerData;
-                console.log(bookmarkerData);
             } else {
                 fetchBookmarkerData();
                 intervalId = setInterval(getInProgressBookmarkerData, 1000);
