@@ -4,7 +4,8 @@ import {
     type BookmarksPageResponse,
     type IBookmarker,
     initalStarCount,
-    type IStarCount
+    type IStarCount,
+    type StarPageResponse
 } from "../../routes/model";
 
 const entriesEndpoint = `https://s.hatena.ne.jp/entry.json`;
@@ -12,10 +13,12 @@ const entriesEndpoint = `https://s.hatena.ne.jp/entry.json`;
 // ブックマーク一覧の1ページに存在するブックマーク数（はてなブックマークの仕様）
 const BOOKMARKS_PER_PAGE = 20;
 
+// 一度に取得するブックマークページの数
+const FETCH_PAGE_CHUNK = 5;
+
 export class BookmarkStarGatherer {
     username: string;
     currentPage = 1;
-    fetchPageChunk = 5;
     progress = 0;
     bookmarkerData: IBookmarker = {
         username: "", // 不要
@@ -113,7 +116,7 @@ export class BookmarkStarGatherer {
     private async getStarCounts(bookmarkResults: { [eid: number]: IBookmark }) {
         const commentURLs = Object.values(bookmarkResults).map((bookmark) => bookmark.commentURL);
 
-        const promises = [];
+        const promises: Promise<Response>[] = [];
         for (let i = 0; i < commentURLs.length; i += BOOKMARKS_PER_PAGE) {
             const sliceUris = commentURLs.slice(i, i + BOOKMARKS_PER_PAGE);
             const entriesURL = this.buildURL(entriesEndpoint, sliceUris);
@@ -123,7 +126,7 @@ export class BookmarkStarGatherer {
         const entries = [];
         const responses = await Promise.all(promises);
         for (const response of responses) {
-            const entriesData = await response.json();
+            const entriesData: StarPageResponse = await response.json();
             entries.push(...entriesData.entries);
         }
 
@@ -158,6 +161,19 @@ export class BookmarkStarGatherer {
         return `https://b.hatena.ne.jp/entry/s/${urlWithoutHTTP}`;
     }
 
+    private extractEIDFromURL(url: string): string | null {
+        // #bookmark-のインデックスを取得
+        const keyword = "#bookmark-";
+        const index = url.indexOf(keyword);
+
+        // #bookmark-が見つかった場合
+        if (index !== -1) {
+            return url.substring(index + keyword.length);
+        }
+
+        return null;
+    }
+
     async main() {
         console.log("start");
         let hasNextPage = true;
@@ -176,12 +192,12 @@ export class BookmarkStarGatherer {
             console.log(this.currentPage);
 
             // 一度に最大で fetchPageChunk * BOOKMARKS_PER_PAGE のブックマークを取得する
-            const bulkResult = await this.bulkGatherBookmarks(this.currentPage, this.fetchPageChunk);
+            const bulkResult = await this.bulkGatherBookmarks(this.currentPage, FETCH_PAGE_CHUNK);
             const bookmarks = bulkResult.bookmarks;
             hasNextPage = bulkResult.hasNextPage;
 
             // この後の処理のため、配列でなくeidをkeyにしたdictでブックマーク情報を保持する
-            const bookmarkResults: { [eid: number]: IBookmark } = {};
+            const bookmarkResults: { [eid: string]: IBookmark } = {};
             for (const bookmark of bookmarks) {
                 const dateString = this.formatDateString(bookmark.created);
                 const commentURL = this.buildCommentURL(bookmark, dateString.replaceAll("-", ""));
@@ -232,9 +248,11 @@ export class BookmarkStarGatherer {
                     }
                 }
 
-                const eid = entry.uri.match(/\d+$/);
-                bookmarkResults[eid] = { ...bookmarkResults[eid], star: starCount };
-                this.bookmarkerData.totalStars += this.calcTotalStarCount(starCount);
+                const eid = this.extractEIDFromURL(entry.uri);
+                if (eid !== null) {
+                    bookmarkResults[eid] = { ...bookmarkResults[eid], star: starCount };
+                    this.bookmarkerData.totalStars += this.calcTotalStarCount(starCount);
+                }
             }
 
             Object.values(bookmarkResults).forEach((bookmarkResult) => {
@@ -252,7 +270,7 @@ export class BookmarkStarGatherer {
             }
 
             loopCount += 1;
-            this.currentPage += this.fetchPageChunk;
+            this.currentPage += FETCH_PAGE_CHUNK;
             this.progress = this.calcProgress();
         }
 
