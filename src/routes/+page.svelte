@@ -1,7 +1,5 @@
 <script>
-    import { goto } from "$app/navigation";
-
-    let username = "";
+    import Search from "./Search.svelte";
 </script>
 
 <svelte:head>
@@ -10,19 +8,15 @@
 </svelte:head>
 
 <section>
-    <h2>このユーザーのブックマークスターを見る</h2>
-    <form on:submit|preventDefault={() => goto(`/user/${username}`)}>
-        <input bind:value={username} />
-        <button>Click</button>
-    </form>
+    <Search />
 </section>
 
-<style>
+<style lang="postcss">
     section {
         display: flex;
         flex-direction: column;
         justify-content: center;
         align-items: center;
-        flex: 0.6;
+        flex: 0.9;
     }
 </style>

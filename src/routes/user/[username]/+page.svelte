@@ -86,7 +86,6 @@
     <h1>{username}</h1>
 
     <h2>total ★: {bookmarker.totalStars}</h2>
-    <h2>total B!: {data.total_bookmarks}</h2>
 
     <a href={bookmarkListURL} target="_blank">
         <img src={data.profile_image_url} alt={username} />
