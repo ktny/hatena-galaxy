@@ -1,3 +1,10 @@
+export interface BookmarkerInfoResponse {
+    name: string;
+    profile_image_url: string;
+    total_bookmarks: number;
+    private: boolean;
+}
+
 export interface StarPageResponse {
     entries: StarPageEntry[];
 }

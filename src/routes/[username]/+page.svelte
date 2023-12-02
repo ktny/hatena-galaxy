@@ -3,9 +3,9 @@
     import { onMount, afterUpdate } from "svelte";
     import { page } from "$app/stores";
     import type { IBookmarker } from "$lib/model";
+    import type { PageServerData } from "./$types";
 
     const username = $page.params.username;
-    const iconURL = `https://cdn.profile-image.st-hatena.com/users/${username}/profile.png`;
     const bookmarkListURL = `https://b.hatena.ne.jp/${username}/bookmark`;
     const initalBookmarkerData = { username, bookmarks: [], totalBookmarks: 0, totalStars: 0 };
 
@@ -14,6 +14,8 @@
     let progress = 0;
     let isLoading = false;
     let intervalId: NodeJS.Timeout;
+
+    export let data: PageServerData;
 
     function deepCopy(data: any) {
         return JSON.parse(JSON.stringify(data));
@@ -84,10 +86,10 @@
     <h1>{username}</h1>
 
     <h2>total ★: {bookmarker.totalStars}</h2>
-    <h2>total B!: {bookmarker.totalBookmarks}</h2>
+    <h2>total B!: {data.total_bookmarks}</h2>
 
     <a href={bookmarkListURL} target="_blank">
-        <img src={iconURL} alt={username} />
+        <img src={data.profile_image_url} alt={username} />
     </a>
 
     <button on:click={reloadBookmarkerPage} disabled={isLoading}>再取得</button>
