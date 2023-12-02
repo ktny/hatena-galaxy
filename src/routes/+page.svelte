@@ -1,5 +1,6 @@
 <script>
     import { goto } from "$app/navigation";
+
     let username = "";
 </script>
 
@@ -9,11 +10,11 @@
 </svelte:head>
 
 <section>
-    <h1>Hatena Galaxy</h1>
-
     <h2>このユーザーのブックマークスターを見る</h2>
-    <input bind:value={username} />
-    <button on:click={() => goto(`/${username}/`)}>Click</button>
+    <form on:submit|preventDefault={() => goto(`/${username}`)}>
+        <input bind:value={username} />
+        <button>Click</button>
+    </form>
 </section>
 
 <style>

@@ -2,7 +2,6 @@
     import { browser } from "$app/environment";
     import { onMount, afterUpdate } from "svelte";
     import { page } from "$app/stores";
-    import { bookmarkData } from "../stores";
     import type { IBookmarker } from "$lib/model";
 
     const username = $page.params.username;
@@ -23,10 +22,8 @@
     async function fetchBookmarkerData() {
         isLoading = true;
         const res = await fetch(`/api/gather?username=${username}`);
-        const bookmarkersData = await res.json();
-        $bookmarkData[username] = bookmarkersData;
-        bookmarker = bookmarkersData;
-        bookmarkData.set($bookmarkData);
+        const bookmarkerData = await res.json();
+        bookmarker = bookmarkerData;
         isLoading = false;
     }
 
@@ -56,8 +53,6 @@
         if (browser) {
             const res = await fetch(`/api/gatherer/loading?username=${username}`);
             isLoading = await res.json();
-
-            console.log(isLoading);
 
             // 取得中であれば再取得ボタンをクリックしたあとと同様の挙動にする
             if (isLoading) {
