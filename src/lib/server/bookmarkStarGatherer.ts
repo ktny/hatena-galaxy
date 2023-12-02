@@ -6,7 +6,7 @@ import {
     initalStarCount,
     type IStarCount,
     type StarPageResponse
-} from "../../routes/model";
+} from "$lib/model";
 
 const entriesEndpoint = `https://s.hatena.ne.jp/entry.json`;
 
@@ -127,7 +127,9 @@ export class BookmarkStarGatherer {
         const responses = await Promise.all(promises);
         for (const response of responses) {
             const entriesData: StarPageResponse = await response.json();
-            entries.push(...entriesData.entries);
+            if (entriesData.entries?.length > 0) {
+                entries.push(...entriesData.entries);
+            }
         }
 
         return entries;

@@ -1,5 +1,5 @@
 import { writable, type Writable } from "svelte/store";
-import type { IBookmark } from "./model";
+import type { IBookmark } from "$lib/model";
 
 // TODO: bookmarkerDataの配列にしたい
 interface BookmarkData {

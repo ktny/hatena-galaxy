@@ -3,7 +3,7 @@
     import { onMount, afterUpdate } from "svelte";
     import { page } from "$app/stores";
     import { bookmarkData } from "../stores";
-    import type { IBookmarker } from "../model";
+    import type { IBookmarker } from "$lib/model";
 
     const username = $page.params.username;
     const iconURL = `https://cdn.profile-image.st-hatena.com/users/${username}/profile.png`;
@@ -27,7 +27,6 @@
         $bookmarkData[username] = bookmarkersData;
         bookmarker = bookmarkersData;
         bookmarkData.set($bookmarkData);
-        localStorage.setItem(username, JSON.stringify(bookmarkersData));
         isLoading = false;
     }
 
@@ -55,8 +54,6 @@
 
     onMount(async () => {
         if (browser) {
-            // const storedData = localStorage.getItem(username) || "";
-
             const res = await fetch(`/api/gatherer/loading?username=${username}`);
             isLoading = await res.json();
 

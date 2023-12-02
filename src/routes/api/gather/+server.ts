@@ -20,16 +20,19 @@ export const GET: RequestHandler = async ({ url }) => {
 
     gatherer = new BookmarkStarGatherer(username);
 
-    // 取得中はローディングをtrueにする
-    loadingGatheres.add(username);
-    const bookmarkerData = await gatherer.main();
-    loadingGatheres.delete(username);
+    try {
+        // 取得中はローディングをtrueにする
+        loadingGatheres.add(username);
+        const bookmarkerData = await gatherer.main();
 
-    // 取得したデータはファイルに保存してキャッシュする
-    const jsonString = JSON.stringify(bookmarkerData, null, 2);
-    fs.writeFileSync(filepath, jsonString, "utf-8");
+        // 取得したデータはファイルに保存してキャッシュする
+        const jsonString = JSON.stringify(bookmarkerData, null, 2);
+        fs.writeFileSync(filepath, jsonString, "utf-8");
 
-    return json({ ...bookmarkerData });
+        return json({ ...bookmarkerData });
+    } finally {
+        loadingGatheres.delete(username);
+    }
 };
 
 export const OPTIONS: RequestHandler = () => {
