@@ -21,7 +21,6 @@ export class BookmarkStarGatherer {
     currentPage = 1;
     progress = 0;
     bookmarkerData: IBookmarker = {
-        username: "", // 不要
         bookmarks: [],
         totalBookmarks: 0, // 最初に1回返せばよい
         totalStars: 0 // フロントで計算する？無駄か
@@ -183,7 +182,6 @@ export class BookmarkStarGatherer {
         // ブックマーカーの基礎情報を取得
         const totalBookmarks = await this.fetchTotalBookmarks();
         this.bookmarkerData = {
-            username: this.username,
             bookmarks: [],
             totalBookmarks,
             totalStars: 0
@@ -276,6 +274,7 @@ export class BookmarkStarGatherer {
             this.progress = this.calcProgress();
         }
 
+        // ソートはフロントで常にやるという手もあるか？
         this.sortBookmarksByStarCount();
         return this.bookmarkerData;
     }

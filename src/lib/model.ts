@@ -75,7 +75,6 @@ export interface IBookmark {
 }
 
 export interface IBookmarker {
-    username: string;
     bookmarks: IBookmark[];
     totalStars: number;
     totalBookmarks: number;

@@ -78,8 +78,8 @@
 </script>
 
 <svelte:head>
-    <title>Home</title>
-    <meta name="description" content="Svelte demo app" />
+    <title>{username} - はてなギャラクシー</title>
+    <meta name="description" content="{username}のはてなギャラクシーです" />
 </svelte:head>
 
 <section>
