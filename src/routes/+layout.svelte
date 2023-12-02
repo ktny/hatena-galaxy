@@ -2,9 +2,10 @@
     import Header from "./Header.svelte";
     import "./styles.css";
     import "../app.css";
+    import { theme } from "$lib/stores";
 </script>
 
-<div class="app">
+<div class="app" data-theme={$theme}>
     <Header />
 
     <main>

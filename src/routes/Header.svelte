@@ -2,6 +2,7 @@
     import { page } from "$app/stores";
     import github from "$lib/images/github.svg";
     import Search from "./Search.svelte";
+    import ThemeController from "./ThemeController.svelte";
 </script>
 
 <header>
@@ -13,6 +14,9 @@
                 <Search />
             {/if}
         </div>
+
+        <ThemeController />
+
         <div class="flex-none gap-2">
             <div tabindex="0" role="button" class="btn btn-ghost btn-circle avatar">
                 <div class="w-10 rounded-full">
