@@ -53,7 +53,15 @@ export interface Bookmark {
 
 export const ColorTypes = ["purple", "blue", "red", "green", "yellow"] as const;
 
-export type IStarCount = Record<(typeof ColorTypes)[number], number>;
+// export type IStarCount = Record<(typeof ColorTypes)[number], number>;
+
+export interface IStarCount {
+    yellow: number;
+    green: number;
+    red: number;
+    blue: number;
+    purple: number;
+}
 
 export const initalStarCount = { yellow: 0, green: 0, red: 0, blue: 0, purple: 0 };
 

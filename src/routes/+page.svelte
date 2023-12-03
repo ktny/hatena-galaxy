@@ -3,8 +3,8 @@
 </script>
 
 <svelte:head>
-    <title>Home</title>
-    <meta name="description" content="Svelte demo app" />
+    <title>はてなギャラクシー</title>
+    <meta name="description" content="はてなギャラクシー" />
 </svelte:head>
 
 <section>
