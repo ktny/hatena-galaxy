@@ -3,6 +3,6 @@ set -euxo pipefail
 
 cd /home/ubuntu/hatena-galaxy
 git pull
-bun install --production
-PORT=80 bun run build
-bun ./build/index.js
+npm ci
+PORT=80 npm run build
+node ./build/index.js

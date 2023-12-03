@@ -1,4 +1,5 @@
 name: Remote update execution
+
 on:
     push:
         branches:
@@ -8,11 +9,13 @@ jobs:
         name: Build
         runs-on: ubuntu-latest
         steps:
-            - name: executing remote ssh commands using password
+            - name: Checkout
+              uses: actions/checkout@v3
+
+            - name: Deploy
               uses: appleboy/ssh-action@master
               with:
                   host: ${{ secrets.SSH_HOST }}
                   username: ubuntu
                   key: ${{ secrets.SSH_KEY }}
-                  script: |
-                      bash /home/ubuntu/hatena-galaxy/deploy.sh
+                  script: bash /home/ubuntu/hatena-galaxy/deploy.sh
