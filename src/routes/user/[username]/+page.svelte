@@ -1,11 +1,13 @@
 <script lang="ts">
     import { browser } from "$app/environment";
     import { onMount, afterUpdate } from "svelte";
-    import { page } from "$app/stores";
     import type { IBookmarker } from "$lib/model";
+    import { ColorTypes } from "$lib/model";
     import type { PageServerData } from "./$types";
 
-    const username = $page.params.username;
+    export let data: PageServerData;
+    const username = data.name;
+
     const bookmarkListURL = `https://b.hatena.ne.jp/${username}/bookmark`;
     const initalBookmarkerData = { username, bookmarks: [], totalBookmarks: 0, totalStars: 0 };
 
@@ -14,8 +16,6 @@
     let progress = 0;
     let isLoading = false;
     let intervalId: NodeJS.Timeout;
-
-    export let data: PageServerData;
 
     function deepCopy(data: any) {
         return JSON.parse(JSON.stringify(data));
@@ -30,6 +30,7 @@
     }
 
     async function reloadBookmarkerPage() {
+        console.log("reloadBookmarkerPage");
         pollingInporgressBookmarkerData();
         fetchBookmarkerData();
     }
@@ -91,7 +92,7 @@
         <img src={data.profile_image_url} alt={username} />
     </a>
 
-    <button on:click={reloadBookmarkerPage} disabled={isLoading}>再取得</button>
+    <button class="btn btn-primary" on:click={reloadBookmarkerPage} disabled={isLoading}>再取得</button>
 
     {#if isLoading}
         <div>{progress} / 1</div>
@@ -99,21 +100,27 @@
 
     {#each bookmarker?.bookmarks as bookmark, i}
         {#if i < displayBookmarksCount}
-            <div>
-                <div>
-                    <a href={bookmark.entryURL} target="_blank">{bookmark.title}</a>
-                    <a href={bookmark.bookmarksURL} target="_blank"><small>{bookmark.bookmarkCount} user</small></a>
-                </div>
-                <div>
-                    <a href="https://b.hatena.ne.jp/entry/{bookmark.eid}/comment/{username}" target="_blank">{bookmark.comment}</a>
-                    <small>{bookmark.bookmarkDate}</small>
-                </div>
-                <div>
-                    {#if bookmark.star.purple > 0}<span>紫{bookmark.star.purple}</span>{/if}
-                    {#if bookmark.star.blue > 0}<span>青{bookmark.star.blue}</span>{/if}
-                    {#if bookmark.star.red > 0}<span>赤{bookmark.star.red}</span>{/if}
-                    {#if bookmark.star.green > 0}<span>緑{bookmark.star.green}</span>{/if}
-                    🌟{bookmark.star.yellow}
+            <div class="card w-full bg-neutral shadow-xl mb-8">
+                <figure><img src={bookmark.image} alt={bookmark.title} /></figure>
+                <div class="card-body">
+                    <h2 class="card-title">
+                        <a href={bookmark.entryURL} target="_blank">{bookmark.title}</a>
+                        <a href={bookmark.bookmarksURL} target="_blank" class="badge badge-accent">{bookmark.bookmarkCount} user</a>
+                    </h2>
+                    <p><a href="https://b.hatena.ne.jp/entry/{bookmark.eid}/comment/{username}" target="_blank">{bookmark.comment}</a></p>
+                    <div class="flex">
+                        {#each ColorTypes as colorType}
+                            {@const starCount = bookmark.star[colorType]}
+                            {#if starCount > 5}
+                                <span class="i-solar-star-bold w-6 h-6 bg-{colorType}-500"></span>
+                                <span>{starCount}</span>
+                            {:else}
+                                {#each Array(starCount) as _}
+                                    <span class="i-solar-star-bold w-6 h-6 bg-{colorType}-500"></span>
+                                {/each}
+                            {/if}
+                        {/each}
+                    </div>
                 </div>
             </div>
         {/if}

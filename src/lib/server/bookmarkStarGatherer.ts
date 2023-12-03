@@ -211,6 +211,7 @@ export class BookmarkStarGatherer {
                     entryURL: bookmark.url,
                     bookmarkDate: dateString,
                     comment: bookmark.comment,
+                    image: bookmark.entry.image,
                     star: initalStarCount,
                     bookmarksURL,
                     commentURL

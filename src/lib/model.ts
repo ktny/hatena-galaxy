@@ -18,7 +18,7 @@ export interface StarPageEntry {
 export type IStar = number | { quote: string; name: string };
 
 export type IColorStar = {
-    color: keyof IStarCount;
+    color: typeof ColorTypes;
     stars: IStar[];
 };
 
@@ -51,13 +51,9 @@ export interface Bookmark {
     comment: string;
 }
 
-export interface IStarCount {
-    yellow: number;
-    green: number;
-    red: number;
-    blue: number;
-    purple: number;
-}
+export const ColorTypes = ["purple", "blue", "red", "green", "yellow"] as const;
+
+export type IStarCount = Record<(typeof ColorTypes)[number], number>;
 
 export const initalStarCount = { yellow: 0, green: 0, red: 0, blue: 0, purple: 0 };
 
@@ -71,6 +67,7 @@ export interface IBookmark {
     commentURL: string;
     bookmarkDate: string;
     comment: string;
+    image: string;
     star: IStarCount;
 }
 
